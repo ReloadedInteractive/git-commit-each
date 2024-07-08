@@ -53,6 +53,7 @@ if changedFiles then
 		if result.ok then
 			stdio.write("\n")
 		else
+			print(result.stdout)
 			error(result.stderr)
 		end
 	end
