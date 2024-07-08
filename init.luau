@@ -68,7 +68,9 @@ if changedFiles then
 			error(result.stderr)
 		end
 	end
-	if next(done) ~= nil then
+	if next(done) == nil then
+		stdio.ewrite("Nothing to commit!")
+	else
 		stdio.write(`Successfully committed:\n`)
 		for file, message in done do
 			stdio.write(stdio.color("purple"))
