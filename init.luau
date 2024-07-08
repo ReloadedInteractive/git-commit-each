@@ -68,16 +68,18 @@ if changedFiles then
 			error(result.stderr)
 		end
 	end
-	stdio.write(`Successfully committed:\n`)
-	for file, message in done do
-		stdio.write(stdio.color("purple"))
-		stdio.write(stdio.style("bold"))
-		stdio.write(file)
-		stdio.write(stdio.style("reset"))
-		stdio.write(stdio.color("reset"))
-		stdio.write(" - ")
-		stdio.write(stdio.color("green"))
-		stdio.write(`"{message}"`)
-		stdio.write("\n")
+	if next(done) ~= nil then
+		stdio.write(`Successfully committed:\n`)
+		for file, message in done do
+			stdio.write(stdio.color("purple"))
+			stdio.write(stdio.style("bold"))
+			stdio.write(file)
+			stdio.write(stdio.style("reset"))
+			stdio.write(stdio.color("reset"))
+			stdio.write(" - ")
+			stdio.write(stdio.color("green"))
+			stdio.write(`"{message}"`)
+			stdio.write("\n")
+		end
 	end
 end
