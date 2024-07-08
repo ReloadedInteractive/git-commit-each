@@ -44,6 +44,7 @@ if changedFiles then
 		stdio.write(file)
 		stdio.write(stdio.color("reset"))
 		stdio.write("\nStatus: ")
+		stdio.write(stdio.style("bold"))
 		if status == "A" then
 			stdio.write(stdio.color("green"))
 			stdio.write("ADDED")
@@ -51,6 +52,7 @@ if changedFiles then
 			stdio.write(stdio.color("yellow"))
 			stdio.write("MODIFIED")
 		end
+		stdio.write(stdio.style("reset"))
 		stdio.write("\n")
 		local message = stdio.prompt("text", "commit message:")
 		if #message == 0 then
@@ -69,7 +71,9 @@ if changedFiles then
 	stdio.write(`Successfully committed:\n`)
 	for file, message in done do
 		stdio.write(stdio.color("purple"))
+		stdio.write(stdio.style("bold"))
 		stdio.write(file)
+		stdio.write(stdio.style("reset"))
 		stdio.write(stdio.color("reset"))
 		stdio.write(" - ")
 		stdio.write(stdio.color("green"))
