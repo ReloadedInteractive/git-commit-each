@@ -59,17 +59,21 @@ if changedFiles then
 		end
 		result = process.spawn("git", {"commit", "-m", message, file})
 		if result.ok then
-			done[file] = true
+			done[file] = message
 			stdio.write("\n")
 		else
 			print(result.stdout)
 			error(result.stderr)
 		end
 	end
-	stdio.write(`Successfully committed following files:\n`)
-	for file, _ in done do
+	stdio.write(`Successfully committed:\n`)
+	for file, message in done do
 		stdio.write(stdio.color("purple"))
 		stdio.write(file)
+		stdio.write(stdio.color("reset"))
+		stdio.write(" - ")
+		stdio.write(stdio.color("green"))
+		stdio.write(`"{message}"`)
 		stdio.write("\n")
 	end
 end
