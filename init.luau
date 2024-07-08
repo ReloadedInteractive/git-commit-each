@@ -52,9 +52,10 @@ if changedFiles then
 			stdio.write("MODIFIED")
 		end
 		stdio.write("\n")
-		local message
-		while message == nil or message == "" do
-			message = stdio.prompt("text", "commit message:")
+		local message = stdio.prompt("text", "commit message:")
+		if #message == 0 then
+			print("Skipping. because the given commit message is empty")
+			continue
 		end
 		result = process.spawn("git", {"commit", "-m", message, file})
 		if result.ok then
