@@ -66,7 +66,7 @@ if changedFiles then
 			error(result.stderr)
 		end
 	end
-	stdio.write(`\nSuccessfully committed following files:\n`)
+	stdio.write(`Successfully committed following files:\n`)
 	for file, _ in done do
 		stdio.write(stdio.color("purple"))
 		stdio.write(file)
