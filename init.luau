@@ -175,6 +175,7 @@ if changedFiles then
 				if done then
 					done[commit.file] = commit.message
 				end
+				print(result.stdout)
 			else
 				log(result.stdout)
 				panic(result.stderr)
@@ -194,6 +195,7 @@ if changedFiles then
 					done[file] = group.message
 					groupedFiles[file] = name
 				end
+				print(result.stdout)
 			else
 				log(result.stdout)
 				panic(result.stderr)
@@ -226,12 +228,12 @@ if changedFiles then
 			local result = process.spawn("git", {"push"})
 			if result.ok then
 				stdio.write(stdio.color("green"))
-				stdio.write("done!\n\n")
+				stdio.write("OK\n\n")
 				stdio.write(stdio.color("reset"))
 				stdio.write(result.stdout)
 			else
 				stdio.write(stdio.color("red"))
-				stdio.write("failed!\n\n")
+				stdio.write("ERR\n\n")
 				stdio.write(stdio.color("red"))
 				panic(result.stderr)
 			end
