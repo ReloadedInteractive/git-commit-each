@@ -69,7 +69,8 @@ if changedFiles then
 		end
 	end
 	if next(done) == nil then
-		stdio.ewrite("Nothing to commit!")
+		print("Nothing to commit!")
+		process.exit(1)
 	else
 		stdio.write(`Successfully committed:\n`)
 		for file, message in done do
