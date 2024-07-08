@@ -11,3 +11,11 @@ git submodule add https://github.com/ReloadedInteractive/git-commit-each.git .lu
 ```sh
 lune run git-commit-each
 ```
+## Creating commit groups
+```sh
+Commit message:
+> @commit-group-name commit message here
+```
+
+# TODO
+- Multiline commit message support
