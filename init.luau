@@ -23,6 +23,7 @@ else
 end
 
 if changedFiles then
+	local done = {}
 	for i, v in changedFiles do
 		if type(v) ~= "string" then
 			continue
@@ -33,6 +34,10 @@ if changedFiles then
 			continue
 		end
 		local file = splited[2]
+		if done[file] then
+			print(`file {file} already has committed. skipping..`)
+			continue
+		end
 		stdio.write(stdio.color("reset"))
 		stdio.write(`File: `)
 		stdio.write(stdio.color("cyan"))
@@ -47,18 +52,17 @@ if changedFiles then
 			stdio.write("MODIFIED")
 		end
 		stdio.write("\n")
-		local message = stdio.prompt("text", "commit message:")
+		local message
+		while message == nil or message == "" do
+			message = stdio.prompt("text", "commit message:")
+		end
 		result = process.spawn("git", {"commit", "-m", message, file})
 		if result.ok then
+			done[file] = true
 			stdio.write("\n")
 		else
 			print(result.stdout)
 			error(result.stderr)
-		end
-		for i2, v2 in changedFiles do
-			if v2:split("\t")[2] == file then
-				changedFiles[i2] = nil
-			end
 		end
 	end
 end
