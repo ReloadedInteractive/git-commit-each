@@ -25,30 +25,56 @@ local function log(...: string)
 	print(...)
 end
 
-local changedFiles: { string }
-local result = process.spawn("git", {"diff", "--name-status", "--diff-filter=MA"}, {shell=true})
-if result.ok then
-	changedFiles = result.stdout:split("\n")
-	changedFiles[#changedFiles] = nil
-	result = process.spawn("git", {"diff", "--cached", "--name-status", "--diff-filter=MA"})
+do
+	local result = process.spawn("git", {"ls-files", "--others", "--exclude-standard"})
+	if result.ok and #result.stdout > 0 then
+		local addAll = stdio.prompt("confirm", "Found untracked files. Would you like to perform 'git add . ' to add untracked files?", false)
+		if addAll then
+			process.spawn("git", {"add", "."})
+		end
+	end
+end
+
+local changedFiles: { string } do
+	local result = process.spawn("git", {"diff", "--name-status", "--diff-filter=MA"})
 	if result.ok then
-		local cachedFiles = result.stdout:split("\n")
-		cachedFiles[#cachedFiles] = nil
-		for _, v in cachedFiles do
-			table.insert(changedFiles, v)
+		changedFiles = result.stdout:split("\n")
+		changedFiles[#changedFiles] = nil
+		result = process.spawn("git", {"diff", "--cached", "--name-status", "--diff-filter=MA"})
+		if result.ok then
+			local cachedFiles = result.stdout:split("\n")
+			cachedFiles[#cachedFiles] = nil
+			for _, v in cachedFiles do
+				table.insert(changedFiles, v)
+			end
+		else
+			panic(result.stderr)
 		end
 	else
 		panic(result.stderr)
 	end
-else
-	panic(result.stderr)
 end
 
 if changedFiles then
+	local function wroteCommit(_: string)
+		-- stdio.write(stdio.color("black"))
+		-- stdio.write(stdio.style("dim"))
+		-- stdio.write(`\tConfirmed commit message: {message}\n\n`)
+		-- stdio.write(stdio.style("reset"))
+		-- stdio.write(stdio.color("reset"))
+		stdio.write(`\n`)
+	end
+
 	local done: { [string]: string }
 	local commitGroups: {
 		[string]: {
 			files: { string },
+			message: string
+		}
+	}
+	local commitQueue: {
+		{
+			file: string,
 			message: string
 		}
 	}
@@ -83,14 +109,6 @@ if changedFiles then
 		stdio.write(stdio.style("reset"))
 		stdio.write("\n")
 
-		local function wroteCommit(message: string)
-			stdio.write(stdio.color("black"))
-			stdio.write(stdio.style("dim"))
-			stdio.write(`\tConfirmed commit message: {message}\n\n`)
-			stdio.write(stdio.style("reset"))
-			stdio.write(stdio.color("reset"))
-		end
-
 		if commitGroups then
 			local options = { "Create a new commit" }
 			for name, _ in commitGroups do
@@ -104,7 +122,7 @@ if changedFiles then
 				continue
 			end
 		end
-		local message = stdio.prompt("text", "Enter a commit message:")
+		local message = stdio.prompt("text", "Commit message:\n")
 		local groupStart, groupEnd = message:find("@%w+")
 		if groupStart and groupEnd and groupStart == 1 then
 			local isEscaped = message:sub(groupStart - 1, groupStart - 1) == "@"
@@ -138,24 +156,35 @@ if changedFiles then
 			print(EMPTY_COMMIT_SKIP_MESSAGE)
 			continue
 		end
-		result = process.spawn("git", {"commit", "-m", message, file})
-		if result.ok then
-			if not done then
-				done = {}
+		if not commitQueue then
+			commitQueue = {}
+		end
+		table.insert(commitQueue, {
+			file = file,
+			message = message
+		})
+		wroteCommit(message)
+	end
+	if commitQueue then
+		for _, commit in commitQueue do
+			local result = process.spawn("git", {"commit", "-m", commit.message, commit.file})
+			if result.ok then
+				if not done then
+					done = {}
+				end
+				if done then
+					done[commit.file] = commit.message
+				end
+			else
+				log(result.stdout)
+				panic(result.stderr)
 			end
-			if done then
-				done[file] = message
-			end
-			wroteCommit(message)
-		else
-			log(result.stdout)
-			panic(result.stderr)
 		end
 	end
 	local groupedFiles = {}
 	if commitGroups then
 		for name, group in commitGroups do
-			result = process.spawn("git", {"commit", "-m", group.message, table.unpack(group.files)})
+			local result = process.spawn("git", {"commit", "-m", group.message, table.unpack(group.files)})
 			if result.ok then
 				if not done then
 					done = {}
@@ -189,6 +218,23 @@ if changedFiles then
 				stdio.write(stdio.color("reset"))
 			end
 			stdio.write("\n")
+		end
+		stdio.write(stdio.color("reset"))
+		local push = stdio.prompt("confirm", "Would you like to push to remote?", false)
+		if push then
+			stdio.write("\nPushing to remote...")
+			local result = process.spawn("git", {"push"})
+			if result.ok then
+				stdio.write(stdio.color("green"))
+				stdio.write("done!\n\n")
+				stdio.write(stdio.color("reset"))
+				stdio.write(result.stdout)
+			else
+				stdio.write(stdio.color("red"))
+				stdio.write("failed!\n\n")
+				stdio.write(stdio.color("red"))
+				panic(result.stderr)
+			end
 		end
 	else
 		panic("Nothing to commit!")
