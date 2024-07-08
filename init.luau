@@ -55,5 +55,10 @@ if changedFiles then
 			print(result.stdout)
 			error(result.stderr)
 		end
+		for i2, v2 in changedFiles do
+			if v2:split("\t")[2] == file then
+				changedFiles[i2] = nil
+			end
+		end
 	end
 end
